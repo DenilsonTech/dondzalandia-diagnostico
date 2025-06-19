@@ -19,7 +19,7 @@ export default function LoginPage() {
         <div className="min-h-screen">
             <main className="relative w-full h-screen bg-white/80 backdrop-blur-sm overflow-hidden">
                 <Image
-                    src="/images/Home.png"
+                    src="https://res.cloudinary.com/dz6qatuby/image/upload/v1750320724/Home_tgb4e1.png"
                     alt="Estudantes usando tablets na sala de aula em Moçambique"
                     fill
                     className="object-cover"
@@ -27,7 +27,7 @@ export default function LoginPage() {
                 />
                 <div className="absolute top-6 left-6 z-20">
                     <Image
-                        src="/images/Logo.png"
+                        src="/https://res.cloudinary.com/dz6qatuby/image/upload/v1750320709/Logo_ptofps.png"
                         alt="Dondzalandia Logo"
                         width={200}
                         height={60}
