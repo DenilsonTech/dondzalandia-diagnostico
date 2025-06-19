@@ -27,7 +27,7 @@ export default function LoginPage() {
                 />
                 <div className="absolute top-6 left-6 z-20">
                     <Image
-                        src="/https://res.cloudinary.com/dz6qatuby/image/upload/v1750320709/Logo_ptofps.png"
+                        src="https://res.cloudinary.com/dz6qatuby/image/upload/v1750320709/Logo_ptofps.png"
                         alt="Dondzalandia Logo"
                         width={200}
                         height={60}
