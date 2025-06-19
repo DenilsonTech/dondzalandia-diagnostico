@@ -12,6 +12,7 @@ const withPWA = require('next-pwa')({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  
   // Outras configs do Next.js podem ser adicionadas aqui
 };
 
