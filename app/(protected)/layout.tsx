@@ -40,7 +40,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <DashboardHeader user={user} handleLogout={handleLogout} />
-      <main className="flex-1 flex flex-col items-center justify-start p-6 w-full max-w-full mx-auto">
+      <main className="flex-1 flex flex-col  justify-start w-full max-w-full mx-auto">
         {children}
       </main>
     </div>

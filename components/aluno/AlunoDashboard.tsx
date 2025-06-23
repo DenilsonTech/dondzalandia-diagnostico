@@ -313,9 +313,9 @@ export default function AlunoDashboard() {
             {/* Quests List */}
             <div className="px-4 md:px-6 lg:px-8 pb-20">
                 <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Suas Quests</h2>
+                    <h2 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900">Seus Testes</h2>
                     <Badge variant="secondary" className="bg-gray-100 text-gray-700 text-sm md:text-base px-3 py-1">
-                        {testesFiltrados.length} quests
+                        {testesFiltrados.length} testes
                     </Badge>
                 </div>
 
