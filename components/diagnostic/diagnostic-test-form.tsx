@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { Plus, Trash2, BookOpen, Target, FileText, Gamepad2, Trophy, Star } from "lucide-react"
+import { Plus, Trash2, ArrowLeft, Save, Target, BookOpen } from "lucide-react"
 import { createDiagnosticTest, CreateDiagnosticTestRequest, updateDiagnosticTest, DiagnosticTest } from "@/services/diagnosticService"
 import Cookies from "js-cookie"
 import { useRouter } from "next/navigation"
 import { getClasses, getDisciplines, Class, Discipline } from "@/services/DisciplineService"
+import Link from "next/link"
 
 // Gerar ID único para elementos temporários no cliente
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -357,333 +358,337 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="mx-auto space-y-8">
-                {/* Header */}
-                <div className="text-center">
-                    <div className="inline-flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-[#f9d570]/20 rounded-full flex items-center justify-center">
-                            <Gamepad2 className="w-6 h-6 text-[#f39d15]" />
+        <div className="min-h-screen bg-gray-50">
+            {/* Header iOS Style */}
+            <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-10">
+                <div className="px-4 py-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Link href="/dashboard/diagnostico">
+                                <Button variant="ghost" className="text-[#f7a541] hover:bg-[#f7a541]/10 p-2 -ml-2 rounded-xl">
+                                    <ArrowLeft className="w-5 h-5" />
+                                </Button>
+                            </Link>
+                            <h1 className="text-xl font-semibold text-gray-900">{initialData ? "Editar Teste" : "Novo Teste"}</h1>
                         </div>
-                        <Star className="w-5 h-5 text-[#f39d15]" />
+                        <Button
+                            onClick={criarTeste}
+                            className="bg-[#f7a541] hover:bg-[#e6943a] text-white rounded-xl px-4 py-2 font-medium"
+                        >
+                            <Save className="w-4 h-4 mr-2" />
+                            {initialData ? "Salvar" : "Criar"}
+                        </Button>
                     </div>
-                    <h1 className="text-3xl font-bold text-[#172750] mb-2">Quest Builder</h1>
-                    <p className="text-gray-600">Crie desafios incríveis para seus alunos</p>
                 </div>
+            </div>
 
-                {/* Informações do Teste */}
-                <Card className="bg-white shadow-sm border-0 w-full md:w-[800px] lg:w-[1000px]">
-                    <CardHeader className="border-b border-gray-100">
-                        <CardTitle className="flex items-center gap-2 text-[#172750]">
-                            <FileText className="w-5 h-5 text-[#f39d15]" />
-                            Configuração da Quest
-                        </CardTitle>
+            {/* Conteúdo Principal */}
+            <div className="px-4 py-6 space-y-6 max-w-4xl mx-auto pb-20">
+                {/* Configuração Básica */}
+                <Card className="bg-white border-0 shadow-sm rounded-2xl overflow-hidden">
+                    <CardHeader className="pb-4">
+                        <CardTitle className="text-lg font-semibold text-gray-900">Configuração do Teste</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <CardContent className="space-y-5">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label className="text-[#172750] font-medium">Nome da Quest</Label>
+                                <Label className="text-gray-700 font-medium">Nome do Teste</Label>
                                 <Input
                                     value={teste.titulo}
                                     onChange={(e) => setTeste((prev) => ({ ...prev, titulo: e.target.value }))}
                                     placeholder="Ex: Aventura da Língua Inglesa"
-                                    className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]"
+                                    className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white transition-all"
                                 />
                             </div>
 
-                            <div className="space-y-2">
-                                <Label className="text-[#172750] font-medium">Nível (Classe)</Label>
-                                <Select value={teste.classe_id} onValueChange={handleClasseChange}>
-                                    <SelectTrigger className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]">
-                                        <SelectValue placeholder="Selecione o nível" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {classes.map((classe) => (
-                                            <SelectItem key={classe.id} value={classe.id}>
-                                                {classe.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-[#172750] font-medium">Disciplina</Label>
-                                <Select
-                                    value={teste.disciplina_id}
-                                    onValueChange={(value) => setTeste((prev) => ({ ...prev, disciplina_id: value }))}
-                                    disabled={!teste.classe_id}
-                                >
-                                    <SelectTrigger className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]">
-                                        <SelectValue placeholder="Escolha a matéria" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {disciplinasFiltradas.map((disciplina) => (
-                                            <SelectItem key={disciplina.id} value={disciplina.id}>
-                                                {disciplina.disciplina_base?.nome || "N/A"}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                            <div className="flex gap-3 w-full">
+                                <div className="space-y-2 flex-1 min-w-0">
+                                    <Label className="text-gray-700 font-medium">Classe</Label>
+                                    <Select value={teste.classe_id} onValueChange={handleClasseChange}>
+                                        <SelectTrigger className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white w-full">
+                                            <SelectValue placeholder="Selecione a classe" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl">
+                                            {classes.map((classe) => (
+                                                <SelectItem key={classe.id} value={classe.id} className="rounded-lg">
+                                                    {classe.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2 flex-1 min-w-0">
+                                    <Label className="text-gray-700 font-medium">Disciplina</Label>
+                                    <Select
+                                        value={teste.disciplina_id}
+                                        onValueChange={(value) => setTeste((prev) => ({ ...prev, disciplina_id: value }))}
+                                        disabled={!teste.classe_id}
+                                    >
+                                        <SelectTrigger className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white w-full">
+                                            <SelectValue placeholder="Escolha a disciplina" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl">
+                                            {disciplinasFiltradas.map((disciplina) => (
+                                                <SelectItem key={disciplina.id} value={disciplina.id} className="rounded-lg">
+                                                    {disciplina.disciplina_base.nome}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-[#172750] font-medium">Descrição da Aventura</Label>
+                            <Label className="text-gray-700 font-medium">Descrição</Label>
                             <Textarea
                                 value={teste.descricao}
                                 onChange={(e) => setTeste((prev) => ({ ...prev, descricao: e.target.value }))}
-                                placeholder="Descreva a jornada que os alunos vão enfrentar..."
+                                placeholder="Descreva o teste que os alunos vão enfrentar..."
                                 rows={3}
-                                className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]"
+                                className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white transition-all resize-none"
                             />
                         </div>
+
+
                     </CardContent>
                 </Card>
 
                 {/* Competências */}
-                <Card className="bg-white shadow-sm border-0 w-full max-w-none">
-                    <CardHeader className="border-b border-gray-100">
+                <Card className="bg-white border-0 shadow-sm rounded-2xl overflow-hidden">
+                    <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2 text-[#172750]">
-                                <Target className="w-5 h-5 text-[#f39d15]" />
-                                Habilidades Especiais
-                                <Badge variant="secondary" className="bg-[#f9d570]/20 text-[#172750] hover:bg-[#f9d570]/20">
-                                    {teste.competencias.length}
-                                </Badge>
-                            </CardTitle>
-                            <Button onClick={adicionarCompetencia} className="bg-[#f39d15] hover:bg-[#f39d15]/90 text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-[#f7a541]/10 rounded-xl flex items-center justify-center">
+                                    <Target className="w-4 h-4 text-[#f7a541]" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-lg font-semibold text-gray-900">Competências</CardTitle>
+                                    <p className="text-sm text-gray-600">Competências que serão avaliadas</p>
+                                </div>
+                            </div>
+                            <Button
+                                onClick={adicionarCompetencia}
+                                className="bg-[#f7a541] hover:bg-[#e6943a] text-white rounded-xl px-4 py-2"
+                            >
                                 <Plus className="w-4 h-4 mr-2" />
-                                Adicionar Habilidade
+                                Adicionar
                             </Button>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-6">
-                        <div className="space-y-6">
-                            {teste.competencias.map((competencia, compIndex) => (
-                                <Card key={competencia.id} className="border border-gray-200 shadow-sm">
-                                    <CardHeader className="bg-gray-50 border-b border-gray-200">
-                                        <div className="flex items-center justify-between">
-                                            <CardTitle className="text-lg flex items-center gap-2 text-[#172750]">
-                                                <div className="w-6 h-6 bg-[#172750] text-white rounded-full flex items-center justify-center text-sm font-bold">
-                                                    {compIndex + 1}
-                                                </div>
-                                                Habilidade {compIndex + 1}
-                                            </CardTitle>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => removerCompetencia(competencia.id)}
-                                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </Button>
+                    <CardContent className="space-y-6">
+                        {teste.competencias.map((competencia, compIndex) => (
+                            <Card key={competencia.id} className="border border-gray-200 rounded-2xl overflow-hidden">
+                                <CardHeader className="bg-gray-50 pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-[#f7a541] text-white rounded-xl flex items-center justify-center text-sm font-bold">
+                                                {compIndex + 1}
+                                            </div>
+                                            <CardTitle className="text-base font-semibold text-gray-900">Competência {compIndex + 1}</CardTitle>
                                         </div>
-                                    </CardHeader>
-                                    <CardContent className="p-6 space-y-4">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removerCompetencia(competencia.id)}
+                                            className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-5 space-y-4">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label className="text-[#172750] font-medium">Nome da Habilidade</Label>
+                                            <Label className="text-gray-700 font-medium">Nome da Competência</Label>
                                             <Input
                                                 value={competencia.nome}
                                                 onChange={(e) => atualizarCompetencia(competencia.id, "nome", e.target.value)}
-                                                placeholder="Ex: Mestre da Compreensão"
-                                                className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]"
+                                                placeholder="Ex: Compreensão de Texto"
+                                                className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white"
                                             />
                                         </div>
-
                                         <div className="space-y-2">
-                                            <Label className="text-[#172750] font-medium">Descrição da Habilidade</Label>
-                                            <Textarea
+                                            <Label className="text-gray-700 font-medium">Descrição</Label>
+                                            <Input
                                                 value={competencia.descricao}
                                                 onChange={(e) => atualizarCompetencia(competencia.id, "descricao", e.target.value)}
-                                                placeholder="Descreva os poderes que esta habilidade concede..."
-                                                rows={2}
-                                                className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]"
+                                                placeholder="Descreva a competência..."
+                                                className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white"
                                             />
                                         </div>
+                                    </div>
 
-                                        {/* Exercícios */}
-                                        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h4 className="font-medium text-[#172750] flex items-center gap-2">
-                                                    <BookOpen className="w-4 h-4 text-[#f39d15]" />
-                                                    Desafios
-                                                    <Badge variant="outline" className="border-[#f39d15]/30 text-[#f39d15]">
-                                                        {competencia.exercicios.length}
-                                                    </Badge>
-                                                </h4>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => adicionarExercicio(competencia.id)}
-                                                    className="border-[#f39d15]/30 text-[#f39d15] hover:bg-[#f39d15]/5"
-                                                >
-                                                    <Plus className="w-4 h-4 mr-1" />
-                                                    Novo Desafio
-                                                </Button>
+                                    {/* Desafios/Exercícios */}
+                                    <div className="mt-6 p-4 bg-gray-50 rounded-2xl">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <BookOpen className="w-4 h-4 text-[#f7a541]" />
+                                                <h4 className="font-medium text-gray-900">Desafios</h4>
+                                                <Badge className="bg-[#f7a541]/10 text-[#f7a541] hover:bg-[#f7a541]/10 rounded-full px-2 py-1 text-xs">
+                                                    {competencia.exercicios.length}
+                                                </Badge>
                                             </div>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => adicionarExercicio(competencia.id)}
+                                                className="border-[#f7a541]/30 text-[#f7a541] hover:bg-[#f7a541]/5 rounded-xl"
+                                            >
+                                                <Plus className="w-4 h-4 mr-1" />
+                                                Novo
+                                            </Button>
+                                        </div>
 
-                                            <div className="space-y-4">
-                                                {competencia.exercicios.map((exercicio, exIndex) => (
-                                                    <Card key={exercicio.id} className="border border-gray-200">
-                                                        <CardContent className="p-4">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <h5 className="font-medium text-[#172750] flex items-center gap-2">
-                                                                    <div className="w-5 h-5 bg-[#172750] text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                                                        {exIndex + 1}
-                                                                    </div>
-                                                                    Desafio {exIndex + 1}
-                                                                </h5>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    onClick={() => removerExercicio(competencia.id, exercicio.id)}
-                                                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                        <div className="space-y-4">
+                                            {competencia.exercicios.map((exercicio, exIndex) => (
+                                                <Card key={exercicio.id} className="border border-gray-200 rounded-2xl">
+                                                    <CardContent className="p-4">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-6 h-6 bg-gray-700 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                                                    {exIndex + 1}
+                                                                </div>
+                                                                <h5 className="font-medium text-gray-900">Desafio {exIndex + 1}</h5>
+                                                            </div>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => removerExercicio(competencia.id, exercicio.id)}
+                                                                className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </Button>
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            <div className="space-y-2">
+                                                                <Label className="text-gray-700 font-medium">Tipo</Label>
+                                                                <Select
+                                                                    value={exercicio.jogabilidade}
+                                                                    onValueChange={(value) =>
+                                                                        atualizarExercicio(competencia.id, exercicio.id, "jogabilidade", value)
+                                                                    }
                                                                 >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </Button>
+                                                                    <SelectTrigger className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white">
+                                                                        <SelectValue placeholder="Escolha o tipo" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="MULTIPLA_ESCOLHA">Múltipla Escolha</SelectItem>
+                                                                        <SelectItem value="VERDADEIRO_FALSO">Verdadeiro ou Falso</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
                                                             </div>
 
-                                                            <div className="space-y-4">
-                                                                <div className="space-y-2">
-                                                                    <Label className="text-[#172750] font-medium">Tipo de Desafio</Label>
-                                                                    <Select
-                                                                        value={exercicio.jogabilidade}
-                                                                        onValueChange={(value) =>
-                                                                            atualizarExercicio(competencia.id, exercicio.id, "jogabilidade", value)
-                                                                        }
-                                                                    >
-                                                                        <SelectTrigger className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]">
-                                                                            <SelectValue placeholder="Escolha o tipo" />
-                                                                        </SelectTrigger>
-                                                                        <SelectContent>
-                                                                            <SelectItem value="MULTIPLA_ESCOLHA">Múltipla Escolha</SelectItem>
-                                                                            <SelectItem value="VERDADEIRO_FALSO">Verdadeiro ou Falso</SelectItem>
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
+                                                            <div className="space-y-2">
+                                                                <Label className="text-gray-700 font-medium">Pergunta</Label>
+                                                                <Textarea
+                                                                    value={exercicio.enunciado}
+                                                                    onChange={(e) =>
+                                                                        atualizarExercicio(competencia.id, exercicio.id, "enunciado", e.target.value)
+                                                                    }
+                                                                    placeholder="Digite a pergunta do desafio..."
+                                                                    rows={3}
+                                                                    className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white resize-none"
+                                                                />
+                                                            </div>
 
-                                                                <div className="space-y-2">
-                                                                    <Label className="text-[#172750] font-medium">Pergunta do Desafio</Label>
-                                                                    <Textarea
-                                                                        value={exercicio.enunciado}
-                                                                        onChange={(e) =>
-                                                                            atualizarExercicio(competencia.id, exercicio.id, "enunciado", e.target.value)
-                                                                        }
-                                                                        placeholder="Digite a pergunta do desafio..."
-                                                                        rows={3}
-                                                                        className="border-gray-200 w-full focus:border-[#f39d15] focus:ring-[#f39d15]"
-                                                                    />
-                                                                </div>
-
-                                                                {/* Opções para Múltipla Escolha */}
-                                                                {exercicio.jogabilidade === "MULTIPLA_ESCOLHA" && (
+                                                            {/* Opções para Múltipla Escolha */}
+                                                            {exercicio.jogabilidade === "MULTIPLA_ESCOLHA" && (
+                                                                <div className="space-y-3">
+                                                                    <Label className="text-gray-700 font-medium">Opções de Resposta</Label>
                                                                     <div className="space-y-3">
-                                                                        <Label className="text-[#172750] font-medium">Opções de Resposta</Label>
-                                                                        <div className="space-y-3">
-                                                                            {exercicio.opcoes.map((opcao, opcIndex) => (
-                                                                                <div
-                                                                                    key={opcao.id}
-                                                                                    className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${opcao.correta
-                                                                                            ? "border-[#f39d15] bg-[#f39d15]/5"
-                                                                                            : "border-gray-200 hover:border-gray-300"
-                                                                                        }`}
-                                                                                >
-                                                                                    <div className="flex items-center space-x-2">
-                                                                                        <input
-                                                                                            type="radio"
-                                                                                            id={`${exercicio.id}-opcao-${opcIndex}`}
-                                                                                            name={`${exercicio.id}-correta`}
-                                                                                            checked={opcao.correta}
-                                                                                            onChange={() =>
-                                                                                                marcarOpcaoCorretaPorIndice(competencia.id, exercicio.id, opcIndex)
-                                                                                            }
-                                                                                            className="w-4 h-4 text-[#f39d15]"
-                                                                                        />
-                                                                                        <Label
-                                                                                            htmlFor={`${exercicio.id}-opcao-${opcIndex}`}
-                                                                                            className="text-[#172750] font-medium"
-                                                                                        >
-                                                                                            {String.fromCharCode(65 + opcIndex)})
-                                                                                        </Label>
-                                                                                    </div>
-                                                                                    <Input
-                                                                                        value={opcao.texto_opcao}
-                                                                                        onChange={(e) =>
-                                                                                            atualizarOpcao(
-                                                                                                competencia.id,
-                                                                                                exercicio.id,
-                                                                                                opcao.id,
-                                                                                                "texto_opcao",
-                                                                                                e.target.value,
-                                                                                            )
-                                                                                        }
-                                                                                        placeholder={`Opção ${String.fromCharCode(65 + opcIndex)}`}
-                                                                                        className="flex-1 border-gray-200 focus:border-[#f39d15] focus:ring-[#f39d15]"
-                                                                                    />
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-
-                                                                {/* Opções para Verdadeiro/Falso */}
-                                                                {exercicio.jogabilidade === "VERDADEIRO_FALSO" && (
-                                                                    <div className="space-y-3">
-                                                                        <Label className="text-[#172750] font-medium">Resposta Correta</Label>
-                                                                        <div className="space-y-3">
-                                                                            {exercicio.opcoes.map((opcao, opcIndex) => (
-                                                                                <div
-                                                                                    key={opcao.id}
-                                                                                    className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all ${opcao.correta
-                                                                                        ? "border-[#f39d15] bg-[#f39d15]/5"
-                                                                                        : "border-gray-200 hover:border-gray-300"
-                                                                                        }`}
-                                                                                >
+                                                                        {exercicio.opcoes.map((opcao, opcIndex) => (
+                                                                            <div
+                                                                                key={opcao.id}
+                                                                                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${opcao.correta
+                                                                                    ? "border-[#f7a541] bg-[#f7a541]/5"
+                                                                                    : "border-gray-200 hover:border-gray-300"
+                                                                                    }`}
+                                                                            >
+                                                                                <div className="flex items-center space-x-2">
                                                                                     <input
                                                                                         type="radio"
-                                                                                        id={`${exercicio.id}-vf-${opcIndex}`}
-                                                                                        name={`${exercicio.id}-vf-correta`}
+                                                                                        id={`${exercicio.id}-opcao-${opcIndex}`}
+                                                                                        name={`${exercicio.id}-correta`}
                                                                                         checked={opcao.correta}
                                                                                         onChange={() =>
                                                                                             marcarOpcaoCorretaPorIndice(competencia.id, exercicio.id, opcIndex)
                                                                                         }
-                                                                                        className="w-4 h-4 text-[#f39d15]"
+                                                                                        className="w-4 h-4 text-[#f7a541]"
                                                                                     />
                                                                                     <Label
-                                                                                        htmlFor={`${exercicio.id}-vf-${opcIndex}`}
-                                                                                        className="text-[#172750] font-medium"
+                                                                                        htmlFor={`${exercicio.id}-opcao-${opcIndex}`}
+                                                                                        className="text-gray-700 font-medium"
                                                                                     >
-                                                                                        {opcao.texto_opcao}
+                                                                                        {String.fromCharCode(65 + opcIndex)})
                                                                                     </Label>
                                                                                 </div>
-                                                                            ))}
-                                                                        </div>
+                                                                                <Input
+                                                                                    value={opcao.texto_opcao}
+                                                                                    onChange={(e) =>
+                                                                                        atualizarOpcao(
+                                                                                            competencia.id,
+                                                                                            exercicio.id,
+                                                                                            opcao.id,
+                                                                                            "texto_opcao",
+                                                                                            e.target.value,
+                                                                                        )
+                                                                                    }
+                                                                                    placeholder={`Opção ${String.fromCharCode(65 + opcIndex)}`}
+                                                                                    className="flex-1 border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white"
+                                                                                />
+                                                                            </div>
+                                                                        ))}
                                                                     </div>
-                                                                )}
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ))}
-                                            </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Opções para Verdadeiro/Falso */}
+                                                            {exercicio.jogabilidade === "VERDADEIRO_FALSO" && (
+                                                                <div className="space-y-3">
+                                                                    <Label className="text-gray-700 font-medium">Resposta Correta</Label>
+                                                                    <div className="space-y-3">
+                                                                        {exercicio.opcoes.map((opcao, opcIndex) => (
+                                                                            <div
+                                                                                key={opcao.id}
+                                                                                className={`flex items-center space-x-3 p-3 rounded-xl border-2 transition-all ${opcao.correta
+                                                                                    ? "border-[#f7a541] bg-[#f7a541]/5"
+                                                                                    : "border-gray-200 hover:border-gray-300"
+                                                                                    }`}
+                                                                            >
+                                                                                <input
+                                                                                    type="radio"
+                                                                                    id={`${exercicio.id}-vf-${opcIndex}`}
+                                                                                    name={`${exercicio.id}-vf-correta`}
+                                                                                    checked={opcao.correta}
+                                                                                    onChange={() =>
+                                                                                        marcarOpcaoCorretaPorIndice(competencia.id, exercicio.id, opcIndex)
+                                                                                    }
+                                                                                    className="w-4 h-4 text-[#f7a541]"
+                                                                                />
+                                                                                <Label
+                                                                                    htmlFor={`${exercicio.id}-vf-${opcIndex}`}
+                                                                                    className="text-gray-700 font-medium"
+                                                                                >
+                                                                                    {opcao.texto_opcao}
+                                                                                </Label>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            ))}
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
                     </CardContent>
                 </Card>
-
-                {/* Botão Final */}
-                <div className="flex justify-center pt-6">
-                    <Button
-                        onClick={criarTeste}
-                        className="bg-[#172750] hover:bg-[#172750]/90 text-white px-8 py-3 text-lg shadow-sm"
-                    >
-                        <Trophy className="w-5 h-5 mr-2" />
-                        Lançar Quest
-                    </Button>
-                </div>
             </div>
         </div>
     )
