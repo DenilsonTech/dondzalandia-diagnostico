@@ -334,7 +334,7 @@ export default function DashboardPage() {
                                                                             </div>
 
                                                                             <div className="flex gap-2">
-                                                                                <Link href={`/diagnostic/${teste.id}`}>
+                                                                                <Link href={`/dashboard/diagnostico/${teste.id}`}>
                                                                                     <Button
                                                                                         variant="outline"
                                                                                         size="sm"
