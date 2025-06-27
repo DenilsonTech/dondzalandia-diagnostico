@@ -66,7 +66,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ user, handleLogout })
                       </Link>
                       <Link href="/dashboard/diagnostico" className="flex items-center gap-2 rounded-lg px-3 py-2 bg-purple-50 text-purple-900 font-medium hover:bg-purple-100 transition">
                         <BookOpenCheck className="bg-purple-400 rounded p-1 text-white" size={24} />
-                        Diangóstico
+                        Diagnóstico
                       </Link>
                       <Link href="/dashboard/comunidade" className="flex items-center gap-2 rounded-lg px-3 py-2 bg-purple-50 text-purple-900 font-medium hover:bg-purple-100 transition">
                         <Users className="bg-purple-400 rounded p-1 text-white" size={24} />
