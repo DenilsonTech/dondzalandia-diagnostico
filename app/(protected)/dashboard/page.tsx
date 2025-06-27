@@ -304,11 +304,10 @@ export default function DashboardPage() {
                                                                             </div>
                                                                         </div>
                                                                         <Badge
-                                                                            className={`text-xs px-2 py-1 rounded-full ${
-                                                                                teste.status === "Ativo"
+                                                                            className={`text-xs px-2 py-1 rounded-full ${teste.status === "Ativo"
                                                                                     ? "bg-green-100 text-green-700"
                                                                                     : "bg-gray-100 text-gray-700"
-                                                                            }`}
+                                                                                }`}
                                                                         >
                                                                             {teste.status}
                                                                         </Badge>
@@ -321,8 +320,8 @@ export default function DashboardPage() {
                                                                                 {/* {teste.alunosCompletaram}/{teste.totalAlunos} ({teste.progresso}%) */}
                                                                             </span>
                                                                         </div>
-                                                                        <Progress 
-                                                                            // value={teste.progresso} className="h-2" 
+                                                                        <Progress
+                                                                        // value={teste.progresso} className="h-2" 
                                                                         />
 
                                                                         <div className="flex items-center justify-between">
@@ -528,11 +527,10 @@ export default function DashboardPage() {
                                         key={periodo.value}
                                         variant={periodoSelecionado === periodo.value ? "default" : "ghost"}
                                         onClick={() => setPeriodoSelecionado(periodo.value)}
-                                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${
-                                            periodoSelecionado === periodo.value
+                                        className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${periodoSelecionado === periodo.value
                                                 ? "bg-white text-gray-900 shadow-sm"
                                                 : "text-gray-600 hover:text-gray-900"
-                                        }`}
+                                            }`}
                                     >
                                         {periodo.label}
                                     </Button>
