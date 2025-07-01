@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 export interface Opcao {
     texto_opcao: string;
     correta: boolean;
+    feedback?: string; // Novo campo opcional para feedback
 }
 
 export interface Exercicio {

@@ -14,6 +14,7 @@ import Cookies from "js-cookie"
 import { useRouter } from "next/navigation"
 import { getClasses, getDisciplines, Class, Discipline } from "@/services/DisciplineService"
 import Link from "next/link"
+import { Switch } from "@/components/ui/switch"
 
 // Gerar ID único para elementos temporários no cliente
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -22,6 +23,7 @@ interface Opcao {
     id: string; // ID para uso interno do componente (React keys)
     texto_opcao: string;
     correta: boolean;
+    feedback?: string; // Novo campo opcional para feedback
 }
 
 interface Exercicio {
@@ -104,6 +106,10 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
     const [loadingData, setLoadingData] = useState(true)
     const [errorData, setErrorData] = useState<string | null>(null)
     const router = useRouter()
+
+    // Adicionar mecanismo para editar feedback apenas quando solicitado pelo usuário
+    // Adicionar estado para controlar quais opções estão com feedback visível
+    const [feedbackVisivel, setFeedbackVisivel] = useState<{ [opcaoId: string]: boolean }>({});
 
     useEffect(() => {
         const fetchData = async () => {
@@ -601,12 +607,12 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                                                                         {exercicio.opcoes.map((opcao, opcIndex) => (
                                                                             <div
                                                                                 key={opcao.id}
-                                                                                className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${opcao.correta
+                                                                                className={`flex flex-col gap-2 p-3 rounded-xl border-2 transition-all ${opcao.correta
                                                                                     ? "border-[#f7a541] bg-[#f7a541]/5"
                                                                                     : "border-gray-200 hover:border-gray-300"
                                                                                     }`}
                                                                             >
-                                                                                <div className="flex items-center space-x-2">
+                                                                                <div className="flex items-center gap-3 w-full">
                                                                                     <input
                                                                                         type="radio"
                                                                                         id={`${exercicio.id}-opcao-${opcIndex}`}
@@ -615,29 +621,52 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                                                                                         onChange={() =>
                                                                                             marcarOpcaoCorretaPorIndice(competencia.id, exercicio.id, opcIndex)
                                                                                         }
-                                                                                        className="w-4 h-4 text-[#f7a541]"
+                                                                                        className="w-6 h-6"
                                                                                     />
                                                                                     <Label
                                                                                         htmlFor={`${exercicio.id}-opcao-${opcIndex}`}
-                                                                                        className="text-gray-700 font-medium"
+                                                                                        className="text-base font-medium"
                                                                                     >
                                                                                         {String.fromCharCode(65 + opcIndex)})
                                                                                     </Label>
+                                                                                    <Input
+                                                                                        value={opcao.texto_opcao}
+                                                                                        onChange={(e) =>
+                                                                                            atualizarOpcao(
+                                                                                                competencia.id,
+                                                                                                exercicio.id,
+                                                                                                opcao.id,
+                                                                                                "texto_opcao",
+                                                                                                e.target.value,
+                                                                                            )
+                                                                                        }
+                                                                                        placeholder={`Opção ${String.fromCharCode(65 + opcIndex)}`}
+                                                                                        className="flex-1 border-gray-200 rounded-xl bg-gray-50"
+                                                                                    />
+                                                                                    <div className="flex items-center gap-2 ml-2">
+                                                                                        <Switch
+                                                                                            checked={!!feedbackVisivel[opcao.id]}
+                                                                                            onCheckedChange={(checked: boolean) => setFeedbackVisivel((prev) => ({ ...prev, [opcao.id]: checked }))}
+                                                                                            aria-label="Adicionar feedback"
+                                                                                        />
+                                                                                    </div>
                                                                                 </div>
-                                                                                <Input
-                                                                                    value={opcao.texto_opcao}
-                                                                                    onChange={(e) =>
-                                                                                        atualizarOpcao(
-                                                                                            competencia.id,
-                                                                                            exercicio.id,
-                                                                                            opcao.id,
-                                                                                            "texto_opcao",
-                                                                                            e.target.value,
-                                                                                        )
-                                                                                    }
-                                                                                    placeholder={`Opção ${String.fromCharCode(65 + opcIndex)}`}
-                                                                                    className="flex-1 border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white"
-                                                                                />
+                                                                                {feedbackVisivel[opcao.id] && (
+                                                                                    <Input
+                                                                                        value={opcao.feedback || ""}
+                                                                                        onChange={(e) =>
+                                                                                            atualizarOpcao(
+                                                                                                competencia.id,
+                                                                                                exercicio.id,
+                                                                                                opcao.id,
+                                                                                                "feedback",
+                                                                                                e.target.value,
+                                                                                            )
+                                                                                        }
+                                                                                        placeholder="Feedback opcional"
+                                                                                        className="border-gray-200 rounded-xl bg-gray-50 mt-1"
+                                                                                    />
+                                                                                )}
                                                                             </div>
                                                                         ))}
                                                                     </div>
@@ -652,27 +681,52 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                                                                         {exercicio.opcoes.map((opcao, opcIndex) => (
                                                                             <div
                                                                                 key={opcao.id}
-                                                                                className={`flex items-center space-x-3 p-3 rounded-xl border-2 transition-all ${opcao.correta
+                                                                                className={`flex flex-col gap-2 p-3 rounded-xl border-2 transition-all ${opcao.correta
                                                                                     ? "border-[#f7a541] bg-[#f7a541]/5"
                                                                                     : "border-gray-200 hover:border-gray-300"
                                                                                     }`}
                                                                             >
-                                                                                <input
-                                                                                    type="radio"
-                                                                                    id={`${exercicio.id}-vf-${opcIndex}`}
-                                                                                    name={`${exercicio.id}-vf-correta`}
-                                                                                    checked={opcao.correta}
-                                                                                    onChange={() =>
-                                                                                        marcarOpcaoCorretaPorIndice(competencia.id, exercicio.id, opcIndex)
-                                                                                    }
-                                                                                    className="w-4 h-4 text-[#f7a541]"
-                                                                                />
-                                                                                <Label
-                                                                                    htmlFor={`${exercicio.id}-vf-${opcIndex}`}
-                                                                                    className="text-gray-700 font-medium"
-                                                                                >
-                                                                                    {opcao.texto_opcao}
-                                                                                </Label>
+                                                                                <div className="flex items-center gap-3 w-full">
+                                                                                    <input
+                                                                                        type="radio"
+                                                                                        id={`${exercicio.id}-vf-${opcIndex}`}
+                                                                                        name={`${exercicio.id}-vf-correta`}
+                                                                                        checked={opcao.correta}
+                                                                                        onChange={() =>
+                                                                                            marcarOpcaoCorretaPorIndice(competencia.id, exercicio.id, opcIndex)
+                                                                                        }
+                                                                                        className="w-6 h-6"
+                                                                                    />
+                                                                                    <Label
+                                                                                        htmlFor={`${exercicio.id}-vf-${opcIndex}`}
+                                                                                        className="text-base font-medium"
+                                                                                    >
+                                                                                        {opcao.texto_opcao}
+                                                                                    </Label>
+                                                                                    <div className="flex items-center gap-2 ml-2">
+                                                                                        <Switch
+                                                                                            checked={!!feedbackVisivel[opcao.id]}
+                                                                                            onCheckedChange={(checked: boolean) => setFeedbackVisivel((prev) => ({ ...prev, [opcao.id]: checked }))}
+                                                                                            aria-label="Adicionar feedback"
+                                                                                        />
+                                                                                    </div>
+                                                                                </div>
+                                                                                {feedbackVisivel[opcao.id] && (
+                                                                                    <Input
+                                                                                        value={opcao.feedback || ""}
+                                                                                        onChange={(e) =>
+                                                                                            atualizarOpcao(
+                                                                                                competencia.id,
+                                                                                                exercicio.id,
+                                                                                                opcao.id,
+                                                                                                "feedback",
+                                                                                                e.target.value,
+                                                                                            )
+                                                                                        }
+                                                                                        placeholder="Feedback opcional"
+                                                                                        className="border-gray-200 rounded-xl bg-gray-50 mt-1"
+                                                                                    />
+                                                                                )}
                                                                             </div>
                                                                         ))}
                                                                     </div>

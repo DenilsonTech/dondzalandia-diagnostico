@@ -5,4 +5,4 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const API_BASE_URL = "https://diagnostico-api.dondzalandia.com/api/";
+export const API_BASE_URL = "http://localhost:8000/api/";
