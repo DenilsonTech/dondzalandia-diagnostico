@@ -45,7 +45,7 @@ interface DiagnosticTestResolverProps {
     exercicioAnterior: () => void;
     handleSubmit: () => void;
     isSubmitting: boolean;
-    submissionResult: { pontuacao_total: number } | null;
+    submissionResult: { valor_total: number } | null;
     submissionError: string | null;
     alunoId?: string | null;
     backHref: string;
@@ -222,7 +222,7 @@ export const DiagnosticTestResolver: React.FC<DiagnosticTestResolverProps> = ({
                     <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
                     <h2 className="text-3xl font-bold text-[#172750] mb-4">Teste Concluído!</h2>
                     <p className="text-gray-700 text-lg mb-4">Sua pontuação final é:</p>
-                    <p className="text-5xl font-extrabold text-green-600 mb-8">{submissionResult.pontuacao_total}</p>
+                    <p className="text-5xl font-extrabold text-green-600 mb-8">{submissionResult.valor_total}</p>
                     <Link href={backHref}>
                         <Button className="bg-gradient-to-r from-[#f39d15] to-[#f9d570] hover:from-[#f9d570] hover:to-[#f39d15] text-white shadow-lg">
                             Voltar

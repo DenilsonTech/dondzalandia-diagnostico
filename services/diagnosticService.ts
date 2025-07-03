@@ -155,14 +155,14 @@ export interface SubmitTestResponseRequest {
 }
 
 export interface SubmitTestResponse {
-    pontuacao_total: number;
+    valor_total: number;
     // Add other fields from the response if necessary
 }
 
 export interface DiagnosticTestResult {
     aluno_id: string;
     teste_id: string;
-    pontuacao_total: number;
+    valor_total: number;
     respostas_corretas: number;
     total_exercicios: number;
     data_submissao: string;
