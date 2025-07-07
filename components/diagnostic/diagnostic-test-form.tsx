@@ -28,8 +28,10 @@ interface Exercicio {
     id: string; // ID para uso interno do componente
     jogabilidade: "MULTIPLA_ESCOLHA" | "VERDADEIRO_FALSO";
     enunciado: string;
+    valor: number; // Novo campo para valor do exercício
     opcoes: Opcao[]; // Usa a interface Opcao local
     resposta_verdadeiro_falso?: boolean;
+    
 }
 
 interface Competencia {
@@ -67,6 +69,7 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                 id: exApi.id, // Mapeia o ID do exercício da API
                 jogabilidade: exApi.jogabilidade || "MULTIPLA_ESCOLHA",
                 enunciado: exApi.enunciado,
+                valor: (exApi as Exercicio).valor ?? 1,
                 opcoes: (() => {
                     if (exApi.jogabilidade === "MULTIPLA_ESCOLHA" && (!exApi.opcoes || exApi.opcoes.length === 0)) {
                         return [
@@ -164,6 +167,7 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
             id: generateId(),
             jogabilidade: "MULTIPLA_ESCOLHA",
             enunciado: "",
+            valor: 1,
             opcoes: [
                 { id: generateId(), texto_opcao: "", correta: false },
                 { id: generateId(), texto_opcao: "", correta: false },
@@ -310,6 +314,7 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                     id: ex.id,
                     jogabilidade: ex.jogabilidade as "MULTIPLA_ESCOLHA" | "VERDADEIRO_FALSO",
                     enunciado: ex.enunciado,
+                    valor: ex.valor,
                     opcoes: ex.opcoes.map((op) => ({
                         texto_opcao: op.texto_opcao,
                         correta: op.correta,
@@ -326,17 +331,17 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                 // Atualizar teste existente
                 response = await updateDiagnosticTest(initialData.id, payload);
                 console.log("Teste diagnóstico atualizado com sucesso:", response);
-                alert("Quest atualizada com sucesso!");
+                alert("Teste atualizada com sucesso!");
             } else {
                 // Criar novo teste
                 response = await createDiagnosticTest(payload);
                 console.log("Teste diagnóstico criado com sucesso:", response);
-                alert("Quest criada com sucesso!");
+                alert("Teste criada com sucesso!");
             }
             router.push("/dashboard/diagnostico") // Redirecionar para o dashboard após sucesso
         } catch (error) {
             console.error("Erro ao criar/atualizar teste diagnóstico:", error)
-            alert(`Erro ao criar/atualizar quest: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
+            alert(`Erro ao criar/atualizar teste: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
         }
     }
 
@@ -590,6 +595,19 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                                                                     placeholder="Digite a pergunta do desafio..."
                                                                     rows={3}
                                                                     className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white resize-none"
+                                                                />
+                                                            </div>
+
+                                                            <div className="space-y-2">
+                                                                <Label className="text-gray-700 font-medium">Valor</Label>
+                                                                <Input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    step={0.1}
+                                                                    value={exercicio.valor}
+                                                                    onChange={e => atualizarExercicio(competencia.id, exercicio.id, "valor", parseFloat(e.target.value))}
+                                                                    className="border-gray-200 focus:border-[#f7a541] focus:ring-[#f7a541] rounded-xl bg-gray-50 focus:bg-white transition-all w-24"
+                                                                    placeholder="Valor"
                                                                 />
                                                             </div>
 

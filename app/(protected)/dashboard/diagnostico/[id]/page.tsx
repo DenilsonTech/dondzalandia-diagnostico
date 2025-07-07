@@ -210,7 +210,7 @@ export default function DiagnosticViewPage() {
                     <Link href={`/dashboard/diagnostico/${testId}/edit`}>
                         <Button className="bg-[#f39d15] hover:bg-[#f39d15]/90 text-white">
                             <Edit3 className="w-4 h-4 mr-2" />
-                            Editar Quest
+                            Editar Teste
                         </Button>
                     </Link>
                 </div>
@@ -360,7 +360,7 @@ export default function DiagnosticViewPage() {
                         <Trophy className="w-20 h-20 text-yellow-500 mx-auto mb-6" />
                         <h2 className="text-3xl font-bold text-[#172750] mb-4">Teste Concluído!</h2>
                         <p className="text-gray-700 text-lg mb-4">Sua pontuação final é:</p>
-                        <p className="text-5xl font-extrabold text-green-600 mb-8">{submissionResult.pontuacao_total}</p>
+                        <p className="text-5xl font-extrabold text-green-600 mb-8">{submissionResult.valor_total}</p>
                         <Button onClick={() => window.location.href = "/dashboard/diagnostico"} className="bg-gradient-to-r from-[#f39d15] to-[#f9d570] hover:from-[#f9d570] hover:to-[#f39d15] text-white shadow-lg">
                             Voltar à Arena de Testes
                         </Button>
