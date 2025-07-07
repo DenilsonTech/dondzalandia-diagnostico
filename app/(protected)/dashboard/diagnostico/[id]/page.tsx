@@ -210,7 +210,7 @@ export default function DiagnosticViewPage() {
                     <Link href={`/dashboard/diagnostico/${testId}/edit`}>
                         <Button className="bg-[#f39d15] hover:bg-[#f39d15]/90 text-white">
                             <Edit3 className="w-4 h-4 mr-2" />
-                            Editar Quest
+                            Editar Teste
                         </Button>
                     </Link>
                 </div>

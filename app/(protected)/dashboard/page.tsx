@@ -92,7 +92,7 @@ const alunosComDificuldade = [
 
 const linksRapidos = [
     {
-        titulo: "Nova Quest",
+        titulo: "Novo Teste",
         href: "dashboard/diagnostico/create",
         icon: Plus,
         cor: "bg-[#f7a541]",

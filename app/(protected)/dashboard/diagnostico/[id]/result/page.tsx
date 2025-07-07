@@ -90,7 +90,7 @@ export default function DiagnosticResultPage() {
                 {/* Card de Resumo do Resultado */}
                 <Card className="bg-white shadow-lg border-0 text-center py-8">
                     <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
-                    <h1 className="text-4xl font-bold text-[#172750] mb-3">Seu Desempenho na Quest!</h1>
+                    <h1 className="text-4xl font-bold text-[#172750] mb-3">Seu Desempenho na no Teste!</h1>
                     <p className="text-gray-700 text-xl mb-6">Pontuação Final: <span className="font-extrabold text-green-600">{resultData.valor_total}</span></p>
                     
                     <div className="flex items-center justify-center gap-4 mb-6">

@@ -491,7 +491,7 @@ export default function AlunoDashboard() {
                         <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                             <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                         </div>
-                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhuma quest encontrada</h3>
+                        <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhuma teste encontrada</h3>
                         <p className="text-gray-600 text-sm md:text-base">Ajuste os filtros ou aguarde novas aventuras!</p>
                     </div>
                 )}

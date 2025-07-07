@@ -90,7 +90,7 @@ export const DiagnosticTestResolver: React.FC<DiagnosticTestResolverProps> = ({
                 {showEditButton && editHref && (
                     <Link href={editHref}>
                         <Button className="bg-[#f39d15] hover:bg-[#f39d15]/90 text-white">
-                            Editar Quest
+                            Editar Teste
                         </Button>
                     </Link>
                 )}

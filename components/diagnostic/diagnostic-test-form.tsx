@@ -31,6 +31,7 @@ interface Exercicio {
     valor: number; // Novo campo para valor do exercício
     opcoes: Opcao[]; // Usa a interface Opcao local
     resposta_verdadeiro_falso?: boolean;
+    
 }
 
 interface Competencia {
@@ -68,7 +69,7 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                 id: exApi.id, // Mapeia o ID do exercício da API
                 jogabilidade: exApi.jogabilidade || "MULTIPLA_ESCOLHA",
                 enunciado: exApi.enunciado,
-                valor: exApi.valor,
+                valor: (exApi as Exercicio).valor ?? 1,
                 opcoes: (() => {
                     if (exApi.jogabilidade === "MULTIPLA_ESCOLHA" && (!exApi.opcoes || exApi.opcoes.length === 0)) {
                         return [
@@ -330,17 +331,17 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                 // Atualizar teste existente
                 response = await updateDiagnosticTest(initialData.id, payload);
                 console.log("Teste diagnóstico atualizado com sucesso:", response);
-                alert("Quest atualizada com sucesso!");
+                alert("Teste atualizada com sucesso!");
             } else {
                 // Criar novo teste
                 response = await createDiagnosticTest(payload);
                 console.log("Teste diagnóstico criado com sucesso:", response);
-                alert("Quest criada com sucesso!");
+                alert("Teste criada com sucesso!");
             }
             router.push("/dashboard/diagnostico") // Redirecionar para o dashboard após sucesso
         } catch (error) {
             console.error("Erro ao criar/atualizar teste diagnóstico:", error)
-            alert(`Erro ao criar/atualizar quest: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
+            alert(`Erro ao criar/atualizar teste: ${error instanceof Error ? error.message : "Erro desconhecido"}`)
         }
     }
 
