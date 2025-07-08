@@ -466,7 +466,7 @@ export default function AlunoDashboard() {
                                                     {teste.status === "disponivel" && (
                                                         <>
                                                             <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
-                                                            <span>Iniciar Quest</span>
+                                                            <span>Iniciar Teste</span>
                                                         </>
                                                     )}
                                                     {teste.status === "bloqueado" && (
@@ -488,7 +488,7 @@ export default function AlunoDashboard() {
 
                 {testesFiltrados.length === 0 && (
                     <div className="text-center py-12 md:py-16">
-                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                        <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-100 rounded-full flex itemrogresss-center justify-center mx-auto mb-4 md:mb-6">
                             <BookOpen className="w-8 h-8 md:w-10 md:h-10 text-gray-400" />
                         </div>
                         <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Nenhuma teste encontrada</h3>

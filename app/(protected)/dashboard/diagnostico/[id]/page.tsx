@@ -244,7 +244,7 @@ export default function DiagnosticViewPage() {
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
                                 <Target className="w-5 h-5 text-[#f39d15]" />
-                                <span className="font-medium text-[#172750]">Progresso da Quest</span>
+                                <span className="font-medium text-[#172750]">Progresso do Teste</span>
                             </div>
                             <span className="text-[#172750] font-medium text-sm">
                                 {exercicioAtual + 1} / {todosExercicios.length}
