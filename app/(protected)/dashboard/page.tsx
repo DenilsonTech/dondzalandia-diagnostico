@@ -99,7 +99,7 @@ const linksRapidos = [
     },
     {
         titulo: "Arena dos Testes",
-        href: "/diagnostic",
+        href: "/dashboard/diagnostico",
         icon: Trophy,
         cor: "bg-[#172750]",
     },
@@ -263,13 +263,13 @@ export default function DashboardPage() {
                                                 </div>
                                                 <h2 className="text-lg font-semibold text-gray-900">Testes Recentes</h2>
                                             </div>
-                                            <Link href="/diagnostic">
+                                            <Link href="/dashboard/diagnostico">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     className="border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl"
                                                 >
-                                                    Ver Todas
+                                                    Ver Todos
                                                 </Button>
                                             </Link>
                                         </div>
@@ -333,14 +333,14 @@ export default function DashboardPage() {
                                                                             </div>
 
                                                                             <div className="flex gap-2">
-                                                                                <Link href={`/dashboard/diagnostico/${teste.id}`}>
+                                                                                <Link href={`/dashboard/diagnostico/${teste.id}/result`}>
                                                                                     <Button
                                                                                         variant="outline"
                                                                                         size="sm"
                                                                                         className="border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl text-xs"
                                                                                     >
                                                                                         <Eye className="w-3 h-3 mr-1" />
-                                                                                        Ver
+                                                                                        Ver resultados
                                                                                     </Button>
                                                                                 </Link>
                                                                                 <Link href={`/reports/${teste.id}`}>

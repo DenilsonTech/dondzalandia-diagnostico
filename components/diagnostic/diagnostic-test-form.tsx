@@ -639,7 +639,7 @@ export default function DiagnosticTestForm({ initialData }: DiagnosticTestFormPr
                                                                                         htmlFor={`${exercicio.id}-opcao-${opcIndex}`}
                                                                                         className="text-gray-700 font-medium"
                                                                                     >
-                                                                                        {String.fromCharCode(65 + opcIndex)})
+                                                                                        {String.fromCharCode(65 + opcIndex)}
                                                                                     </Label>
                                                                                 </div>
                                                                                 <Input
