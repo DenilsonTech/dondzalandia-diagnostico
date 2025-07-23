@@ -30,7 +30,9 @@ import {
 import Link from "next/link"
 
 import { getMeData, MeResponse } from "@/services/authService"
-import { getDiagnosticTestsByClass, DiagnosticTest } from "@/services/diagnosticService"
+import { getDiagnosticTestsByClass, DiagnosticTest, getDiagnosticTestResult, DiagnosticTestResult } from "@/services/diagnosticService"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useCallback } from "react"
 
 // Define a new interface for the UI-specific test data,
 // which combines necessary backend data with frontend display properties.
@@ -91,6 +93,9 @@ export default function AlunoDashboard() {
     const [diagnosticTests, setDiagnosticTests] = useState<UIDiagnosticTest[]>([]);
     const [testsLoading, setTestsLoading] = useState(true);
     const [testsError, setTestsError] = useState<string | null>(null);
+    const [testResults, setTestResults] = useState<Record<string, DiagnosticTestResult | null>>({});
+    const [modalResult, setModalResult] = useState<DiagnosticTestResult | null>(null);
+    const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchUserDataAndTests = async () => {
@@ -155,6 +160,26 @@ export default function AlunoDashboard() {
         fetchUserDataAndTests();
     }, []);
 
+    // Buscar resultados dos testes do aluno
+    useEffect(() => {
+        if (!alunoId || diagnosticTests.length === 0) return;
+        const fetchResults = async () => {
+            const results: Record<string, DiagnosticTestResult | null> = {};
+            await Promise.all(
+                diagnosticTests.map(async (test) => {
+                    try {
+                        const result = await getDiagnosticTestResult(test.id, alunoId);
+                        results[test.id] = result;
+                    } catch {
+                        results[test.id] = null;
+                    }
+                })
+            );
+            setTestResults(results);
+        };
+        fetchResults();
+    }, [alunoId, diagnosticTests]);
+
     if (loading || testsLoading) {
         return <div className="w-full max-w-6xl mx-auto p-6 text-center">Carregando dados do aluno e testes...</div>;
     }
@@ -198,6 +223,34 @@ export default function AlunoDashboard() {
     const progressoXP = (dadosAluno.xp / dadosAluno.xpProximoNivel) * 100
 
     return (
+        <>
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+            <DialogContent className="max-w-lg">
+                <DialogHeader>
+                    <DialogTitle>Resultado do Teste</DialogTitle>
+                </DialogHeader>
+                {modalResult && (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <Trophy className="w-8 h-8 text-amber-500" />
+                            <span className="text-xl font-bold">Nota: {modalResult.valor_total}</span>
+                        </div>
+                        {Array.isArray(modalResult.respostas) && (
+                            <div className="flex gap-4">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                    <span>Acertos: {modalResult.respostas.filter(r => r.correta === 1).length}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <AlertCircle className="w-5 h-5 text-red-500" />
+                                    <span>Erros: {modalResult.respostas.filter(r => r.correta === 0).length}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
         <div className="w-full max-w-md md:max-w-4xl lg:max-w-6xl mx-auto bg-gray-50 min-h-screen">
             {/* Header Mobile/Tablet */}
             <div className="bg-white shadow-sm sticky top-0 z-10">
@@ -321,155 +374,152 @@ export default function AlunoDashboard() {
 
                 {/* Grid responsivo para tablets */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {testesFiltrados.map((teste) => (
-                        <Card
-                            key={teste.id}
-                            className={`bg-white shadow-sm border-0 overflow-hidden transition-all duration-200 hover:shadow-md active:scale-95 ${
-                                teste.status === "bloqueado" ? "opacity-60" : ""
-                            }`}
-                        >
-                            <CardContent className="p-0">
-                                {/* Quest Header */}
-                                <div className={`bg-gradient-to-r ${teste.cor} p-4 md:p-5 text-white relative overflow-hidden`}>
-                                    <div className="absolute top-0 right-0 text-5xl md:text-6xl opacity-10">{teste.icone}</div>
-                                    <div className="relative">
-                                        <div className="flex items-start justify-between mb-2 md:mb-3">
-                                            <div className="flex-1">
-                                                <div className="flex items-center gap-2 mb-1 md:mb-2">
-                                                    <Badge
-                                                        className={`${corDificuldade[teste.dificuldade as keyof typeof corDificuldade]} text-white border-0 text-xs md:text-sm`}
-                                                    >
-                                                        {teste.dificuldade}
-                                                    </Badge>
-                                                    {teste.status === "completado" && <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />}
-                                                    {teste.status === "em_andamento" && <Clock className="w-4 h-4 md:w-5 md:h-5 animate-pulse" />}
+                    {testesFiltrados.map((teste) => {
+                        const result = testResults[teste.id];
+                        const jaFez = !!result;
+                        return (
+                            <Card
+                                key={teste.id}
+                                className={`bg-white shadow-sm border-0 overflow-hidden transition-all duration-200 hover:shadow-md active:scale-95 ${
+                                    teste.status === "bloqueado" ? "opacity-60" : ""
+                                }`}
+                            >
+                                <CardContent className="p-0">
+                                    {/* Quest Header */}
+                                    <div className={`bg-gradient-to-r ${teste.cor} p-4 md:p-5 text-white relative overflow-hidden`}>
+                                        <div className="absolute top-0 right-0 text-5xl md:text-6xl opacity-10">{teste.icone}</div>
+                                        <div className="relative">
+                                            <div className="flex items-start justify-between mb-2 md:mb-3">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1 md:mb-2">
+                                                        <Badge
+                                                            className={`${corDificuldade[teste.dificuldade as keyof typeof corDificuldade]} text-white border-0 text-xs md:text-sm`}
+                                                        >
+                                                            {teste.dificuldade}
+                                                        </Badge>
+                                                        {teste.status === "completado" && <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />}
+                                                        {teste.status === "em_andamento" && <Clock className="w-4 h-4 md:w-5 md:h-5 animate-pulse" />}
+                                                    </div>
+                                                    <h3 className="font-bold text-base md:text-lg lg:text-xl leading-tight">{teste.titulo}</h3>
                                                 </div>
-                                                <h3 className="font-bold text-base md:text-lg lg:text-xl leading-tight">{teste.titulo}</h3>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {/* Quest Details */}
-                                <div className="p-4 md:p-5 space-y-3 md:space-y-4">
-                                    <p className="text-gray-600 text-sm md:text-base leading-relaxed">{teste.descricao}</p>
+                                    {/* Quest Details */}
+                                    <div className="p-4 md:p-5 space-y-3 md:space-y-4">
+                                        <p className="text-gray-600 text-sm md:text-base leading-relaxed">{teste.descricao}</p>
 
-                                    {/* Quest Info - Layout da imagem */}
-                                    <div className="space-y-2 text-sm md:text-base text-gray-600">
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4 md:w-5 md:h-5" />
-                                            <span>
-                                                {teste.tempoEstimado} min • {teste.questoes} desafios
-                                            </span>
+                                        {/* Quest Info - Layout da imagem */}
+                                        <div className="space-y-2 text-sm md:text-base text-gray-600">
+                                            <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4 md:w-5 md:h-5" />
+                                                <span>
+                                                    {teste.tempoEstimado} min • {teste.questoes} desafios
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="w-4 h-4 md:w-5 md:h-5" />
+                                                <span>Prazo: {teste.dataLimite}</span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Calendar className="w-4 h-4 md:w-5 md:h-5" />
-                                            <span>Prazo: {teste.dataLimite}</span>
-                                        </div>
-                                    </div>
 
-                                    {/* Progress Bar - Sempre visível */}
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm text-gray-600">
-                                            <span>Progresso</span>
-                                            <span>
-                                                {teste.status === "completado"
-                                                    ? "100%"
-                                                    : teste.status === "em_andamento"
-                                                        ? `${teste.progresso}%`
-                                                        : "0%"}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-gray-200 rounded-full h-2">
-                                            <div
-                                                className={`rounded-full h-2 transition-all duration-500 ${
-                                                    teste.status === "completado"
-                                                        ? "bg-emerald-500"
+                                        {/* Progress Bar - Sempre visível */}
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm text-gray-600">
+                                                <span>Progresso</span>
+                                                <span>
+                                                    {teste.status === "completado"
+                                                        ? "100%"
                                                         : teste.status === "em_andamento"
-                                                            ? "bg-blue-500"
-                                                            : "bg-gray-300"
-                                                }`}
-                                                style={{
-                                                    width:
-                                                        teste.status === "completado"
-                                                            ? "100%"
-                                                            : teste.status === "em_andamento"
-                                                                ? `${teste.progresso}%`
-                                                                : "0%",
-                                                }}
-                                            ></div>
-                                        </div>
-                                    </div>
-
-                                    {/* Competências */}
-                                    <div className="flex flex-wrap gap-2">
-                                        {teste.competencias?.map((competencia, index) => (
-                                            <Badge
-                                                key={index}
-                                                variant="outline"
-                                                className="border-amber-300 text-amber-700 bg-amber-50 text-xs"
-                                            >
-                                                {competencia}
-                                            </Badge>
-                                        ))}
-                                    </div>
-
-                                    {/* Blocked Quest Info */}
-                                    {teste.status === "bloqueado" && (
-                                        <div className="p-3 md:p-4 bg-gray-50 rounded-lg">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-                                                <span className="text-sm md:text-base font-medium text-gray-600">Bloqueado</span>
+                                                            ? `${teste.progresso}%`
+                                                            : "0%"}
+                                                </span>
                                             </div>
-                                            <p className="text-xs md:text-sm text-gray-500">{teste.requisito}</p>
+                                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                                <div
+                                                    className={`rounded-full h-2 transition-all duration-500 ${
+                                                        teste.status === "completado"
+                                                            ? "bg-emerald-500"
+                                                            : teste.status === "em_andamento"
+                                                                ? "bg-blue-500"
+                                                                : "bg-gray-300"
+                                                    }`}
+                                                    style={{
+                                                        width:
+                                                            teste.status === "completado"
+                                                                ? "100%"
+                                                                : teste.status === "em_andamento"
+                                                                    ? `${teste.progresso}%`
+                                                                    : "0%",
+                                                    }}
+                                                ></div>
+                                            </div>
                                         </div>
-                                    )}
 
-                                    {/* Action Button */}
-                                    <a
-                                        href={
-                                            typeof teste.id === 'string' && teste.status === "completado"
-                                                ? `/dashboard/diagnostico/${teste.id}/result`
-                                                : typeof teste.id === 'string'
-                                                    ? `/dashboard/diagnostico/resolver/${teste.id}`
-                                                    : '#'
-                                        }
-                                        tabIndex={teste.status === "bloqueado" ? -1 : 0}
-                                        style={{ pointerEvents: teste.status === "bloqueado" ? "none" : "auto" }}
-                                    >
+                                        {/* Competências */}
+                                        <div className="flex flex-wrap gap-2">
+                                            {teste.competencias?.map((competencia, index) => (
+                                                <Badge
+                                                    key={index}
+                                                    variant="outline"
+                                                    className="border-amber-300 text-amber-700 bg-amber-50 text-xs"
+                                                >
+                                                    {competencia}
+                                                </Badge>
+                                            ))}
+                                        </div>
+
+                                        {/* Blocked Quest Info */}
+                                        {teste.status === "bloqueado" && (
+                                            <div className="p-3 md:p-4 bg-gray-50 rounded-lg">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
+                                                    <span className="text-sm md:text-base font-medium text-gray-600">Bloqueado</span>
+                                                </div>
+                                                <p className="text-xs md:text-sm text-gray-500">{teste.requisito}</p>
+                                            </div>
+                                        )}
+
+                                        {/* Action Button */}
                                         <Button
                                             className={`w-full h-12 md:h-14 font-semibold text-base md:text-lg shadow-sm ${
-                                                teste.status === "completado"
+                                                jaFez
                                                     ? "bg-emerald-500 hover:bg-emerald-600 text-white"
                                                     : teste.status === "em_andamento"
-                                                        ? "bg-amber-500 hover:bg-amber-600 text-white"
-                                                        : teste.status === "bloqueado"
-                                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                                            : "bg-[#f39d15] hover:bg-[#f39d15]/90 text-white"
+                                                    ? "bg-amber-500 hover:bg-amber-600 text-white"
+                                                    : teste.status === "bloqueado"
+                                                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                                    : "bg-[#f39d15] hover:bg-[#f39d15]/90 text-white"
                                             }`}
                                             disabled={teste.status === "bloqueado"}
+                                            onClick={() => {
+                                                if (jaFez && result) {
+                                                    setModalResult(result);
+                                                    setModalOpen(true);
+                                                } else {
+                                                    window.location.href = `/dashboard/diagnostico/resolver/${teste.id}`;
+                                                }
+                                            }}
                                         >
                                             <div className="flex items-center justify-between w-full">
                                                 <div className="flex items-center gap-2 md:gap-3">
-                                                    {teste.status === "completado" && (
+                                                    {jaFez ? (
                                                         <>
                                                             <Trophy className="w-5 h-5 md:w-6 md:h-6" />
                                                             <span>Ver Resultado</span>
                                                         </>
-                                                    )}
-                                                    {teste.status === "em_andamento" && (
+                                                    ) : teste.status === "em_andamento" ? (
                                                         <>
                                                             <Play className="w-5 h-5 md:w-6 md:h-6" />
                                                             <span>Continuar</span>
                                                         </>
-                                                    )}
-                                                    {teste.status === "disponivel" && (
+                                                    ) : teste.status === "disponivel" ? (
                                                         <>
                                                             <Sparkles className="w-5 h-5 md:w-6 md:h-6" />
                                                             <span>Iniciar Teste</span>
                                                         </>
-                                                    )}
-                                                    {teste.status === "bloqueado" && (
+                                                    ) : (
                                                         <>
                                                             <AlertCircle className="w-5 h-5 md:w-6 md:h-6" />
                                                             <span>Bloqueado</span>
@@ -479,11 +529,11 @@ export default function AlunoDashboard() {
                                                 {teste.status !== "bloqueado" && <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />}
                                             </div>
                                         </Button>
-                                    </a>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
 
                 {testesFiltrados.length === 0 && (
@@ -497,6 +547,7 @@ export default function AlunoDashboard() {
                 )}
             </div>
         </div>
+        </>
     )
 }
 

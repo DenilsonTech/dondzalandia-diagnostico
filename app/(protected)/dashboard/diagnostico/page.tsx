@@ -6,12 +6,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Trophy, Eye, Edit3 } from "lucide-react"
-import { getDiagnosticTests, DiagnosticTest } from "@/services/diagnosticService"
+import { getDiagnosticTests, deleteDiagnosticTest } from "@/services/diagnosticService"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { toast } from "sonner"
+import { useRef } from "react"
 
 export default function DiagnosticPage() {
-    const [testes, setTestes] = useState<DiagnosticTest[]>([])
+    const [testes, setTestes] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const closeDialog = () => setDeleteId(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -27,7 +33,35 @@ export default function DiagnosticPage() {
         fetchData()
     }, [])
 
+    async function handleDelete() {
+        if (!deleteId) return;
+        setDeleting(true);
+        try {
+            await deleteDiagnosticTest(deleteId);
+            setTestes((prev) => prev.filter((t) => t.id !== deleteId));
+            toast.success("Teste excluído com sucesso!");
+            closeDialog();
+        } catch (err: any) {
+            toast.error(err.message || "Erro ao excluir teste.");
+        } finally {
+            setDeleting(false);
+        }
+    }
+
     return (
+        <>
+        <Dialog open={!!deleteId} onOpenChange={closeDialog}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Confirmar Exclusão</DialogTitle>
+                </DialogHeader>
+                <div>Tem certeza que deseja excluir este teste? Esta ação não pode ser desfeita.</div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={closeDialog} disabled={deleting}>Cancelar</Button>
+                    <Button variant="destructive" onClick={handleDelete} disabled={deleting}>{deleting ? 'Excluindo...' : 'Excluir'}</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
         <div className="min-h-screen bg-gray-50">
             {/* Header Simples - Estilo iOS */}
             <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 sticky top-0 z-10">
@@ -104,16 +138,6 @@ export default function DiagnosticPage() {
                                                 </div>
                                                 {/* Botões de Ação */}
                                                 <div className="flex justify-center gap-3">
-                                                    <Link href={`/dashboard/diagnostico/${teste.id}`} className="flex-1 max-w-[120px]">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="w-full rounded-xl border-gray-200 text-gray-700 hover:bg-gray-50 text-sm"
-                                                        >
-                                                            <Eye className="w-4 h-4 mr-2" />
-                                                            Ver
-                                                        </Button>
-                                                    </Link>
                                                     <Link href={`/dashboard/diagnostico/${teste.id}/edit`} className="flex-1 max-w-[120px]">
                                                         <Button
                                                             size="sm"
@@ -123,6 +147,16 @@ export default function DiagnosticPage() {
                                                             Editar
                                                         </Button>
                                                     </Link>
+                                                    <div className="flex-1 max-w-[120px]">
+                                                        <Button
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            className="w-full rounded-xl text-sm"
+                                                            onClick={() => setDeleteId(teste.id)}
+                                                        >
+                                                            Excluir Teste
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -151,5 +185,6 @@ export default function DiagnosticPage() {
                 )}
             </div>
         </div>
+        </>
     )
 }

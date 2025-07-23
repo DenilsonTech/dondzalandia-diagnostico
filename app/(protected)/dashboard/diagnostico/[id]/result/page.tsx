@@ -1,139 +1,216 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { ArrowLeft, CheckCircle, XCircle, HelpCircle, Trophy } from "lucide-react"
-import { getDiagnosticTestResult, DiagnosticTestResult } from "@/services/diagnosticService"
-import { getMeData } from "@/services/authService"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+import { API_BASE_URL } from "@/lib/utils"
+import Cookies from "js-cookie"
+import * as React from "react"
+import {
+    ColumnDef,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    useReactTable,
+    ColumnFiltersState,
+    VisibilityState,
+} from "@tanstack/react-table"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ChevronDown } from "lucide-react"
 
 export default function DiagnosticResultPage() {
     const params = useParams()
     const testId = params.id as string
-    const [resultData, setResultData] = useState<DiagnosticTestResult | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const [alunoId, setAlunoId] = useState<string | null>(null);
+    const [results, setResults] = React.useState<any[]>([])
+    const [loading, setLoading] = React.useState(true)
+    const [error, setError] = React.useState<string | null>(null)
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+    const [rowSelection, setRowSelection] = React.useState({})
+    const [disciplina, setDisciplina] = React.useState<{ id: string, nome: string } | null>(null)
 
-    useEffect(() => {
-        const fetchResult = async () => {
+    React.useEffect(() => {
+        async function fetchResults() {
+            setLoading(true)
+            setError(null)
             try {
-                setLoading(true);
-                const meResponse = await getMeData();
-                if (meResponse.user.role === 'aluno') {
-                    const currentAlunoId = meResponse.user.alunoId;
-                    setAlunoId(currentAlunoId);
-                    if (currentAlunoId) {
-                        const data = await getDiagnosticTestResult(testId, currentAlunoId);
-                        setResultData(data);
-                    } else {
-                        setError("ID do aluno não disponível.");
+                const token = Cookies.get("access_token")
+                const res = await fetch(`${API_BASE_URL}resultados/${testId}/alunos`, {
+                    headers: {
+                        ...(token ? { Authorization: `Bearer ${token}` } : {})
                     }
-                } else {
-                    setError("Usuário logado não é um aluno.");
-                }
-            } catch (err) {
-                setError(err instanceof Error ? err.message : "Erro ao carregar os resultados do teste.");
+                })
+                if (!res.ok) throw new Error("Erro ao buscar resultados dos alunos.")
+                const data = await res.json()
+                console.log("Resultados da API:", data)
+                setResults(data.data || [])
+                setDisciplina(data.disciplina || null)
+            } catch (err: any) {
+                setError(err.message || "Erro ao buscar resultados dos alunos.")
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
         }
+        if (testId) fetchResults()
+    }, [testId])
 
-        if (testId) {
-            fetchResult();
-        }
-    }, [testId]);
+    // Extrair dados do topo
+    const first = results[0]
+    const nomeTeste = first?.exercicio?.teste?.titulo || "Teste Diagnóstico"
+    const nomeDisciplina = disciplina?.nome || "Disciplina"
+    const nomeClasse = first?.aluno?.classe?.name || "Classe"
+    const nomeTurma = first?.aluno?.turma?.codigo || "Turma"
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-                <p className="text-gray-600 text-lg">Carregando resultado do teste...</p>
-            </div>
-        )
-    }
+    // Definir colunas para o DataTable
+    const columns: ColumnDef<any>[] = [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        id: "nome_completo", // <-- adicionado id explícito
+        header: "Nome Completo",
+        accessorKey: "aluno.nome_completo",
+        cell: ({ row }) => row.original.aluno?.nome_completo || "-",
+      },
+      {
+        header: "Nota",
+        accessorKey: "valor_total",
+        cell: ({ row }) => <span className="font-semibold">{row.original.valor_total}</span>,
+      },
+    ]
 
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-                <p className="text-red-600 text-lg">Erro: {error}</p>
-            </div>
-        )
-    }
-
-    if (!resultData) {
-        return (
-            <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-                <p className="text-gray-600 text-lg">Resultado do teste não encontrado.</p>
-            </div>
-        )
-    }
-
-    const progressoCorretas = (resultData.respostas_corretas / resultData.total_exercicios) * 100;
+    // Configurar a tabela do shadcn
+    const table = useReactTable({
+      data: results,
+      columns,
+      getCoreRowModel: getCoreRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      onColumnFiltersChange: setColumnFilters,
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      state: {
+        columnFilters,
+        columnVisibility,
+        rowSelection,
+      },
+    })
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-[1000px] mx-auto space-y-6">
-                {/* Header com Navegação */}
-                <div className="flex items-center justify-between">
-                    <Link href="/dashboard/diagnostico">
-                        <Button variant="outline" className="border-gray-200 text-gray-700 hover:bg-gray-50">
-                            <ArrowLeft className="w-4 h-4 mr-2" />
-                            Voltar à Arena
-                        </Button>
-                    </Link>
-                </div>
-
-                {/* Card de Resumo do Resultado */}
-                <Card className="bg-white shadow-lg border-0 text-center py-8">
-                    <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-6" />
-                    <h1 className="text-4xl font-bold text-[#172750] mb-3">Seu Desempenho na no Teste!</h1>
-                    <p className="text-gray-700 text-xl mb-6">Pontuação Final: <span className="font-extrabold text-green-600">{resultData.valor_total}</span></p>
-                    
-                    <div className="flex items-center justify-center gap-4 mb-6">
-                        <Badge variant="secondary" className="bg-green-100 text-green-700 font-medium px-4 py-2">
-                            Corretas: {resultData.respostas_corretas}
-                        </Badge>
-                        <Badge variant="secondary" className="bg-red-100 text-red-700 font-medium px-4 py-2">
-                            Total de Exercícios: {resultData.total_exercicios}
-                        </Badge>
-                    </div>
-
-                    <div className="w-2/3 mx-auto">
-                        <Progress value={progressoCorretas} className="h-3" />
-                        <p className="text-sm text-gray-500 mt-2">{Math.round(progressoCorretas)}% de acerto</p>
-                    </div>
-                </Card>
-
-                {/* Detalhes das Respostas */}
-                <Card className="bg-white shadow-lg border-0">
-                    <CardHeader className="border-b border-gray-100 py-4">
-                        <CardTitle className="text-xl font-bold text-[#172750] flex items-center gap-2">
-                            <HelpCircle className="w-6 h-6 text-[#f39d15]" />
-                            Revisão das Respostas
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                        {resultData.detalhes_respostas.map((detalhe, index) => (
-                            <div key={detalhe.exercicio_id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${detalhe.correta ? "bg-green-500" : "bg-red-500"}`}>
-                                        {detalhe.correta ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
-                                    </div>
-                                    <p className="text-md font-semibold text-[#172750]">Questão {index + 1}</p>
-                                </div>
-                                <div className="space-y-2 text-sm text-gray-700">
-                                    <p><span className="font-medium">Sua Resposta:</span> {String(detalhe.resposta_aluno)}</p>
-                                    <p><span className="font-medium">Resposta Correta:</span> {String(detalhe.resposta_correta)}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </CardContent>
-                </Card>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-6xl w-full mx-auto space-y-6 px-2 sm:px-4">
+          <div className="px-6 py-4 border-b bg-white rounded-t-2xl">
+            <h2 className="font-bold text-lg mb-2">{nomeTeste}</h2>
+            <div className="flex gap-4 text-sm text-gray-600">
+              <span>Disciplina: <b>{nomeDisciplina}</b></span>
+              <span>Classe: <b>{nomeClasse}</b></span>
+              <span>Turma: <b>{nomeTurma}</b></span>
             </div>
+          </div>
+          <div className="bg-white rounded-b-2xl shadow-lg p-0 overflow-x-auto w-full">
+            <div className="flex items-center py-4 px-4 gap-2">
+              <Input
+                placeholder="Filtrar por nome..."
+                value={(table.getColumn("nome_completo")?.getFilterValue() as string) ?? ""}
+                onChange={(event) =>
+                  table.getColumn("nome_completo")?.setFilterValue(event.target.value)
+                }
+                className="max-w-sm"
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="ml-auto">
+                    Colunas <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={(value) =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.id}
+                        </DropdownMenuCheckboxItem>
+                      )
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            {loading ? (
+              <div className="text-center py-8 text-gray-500">Carregando resultados...</div>
+            ) : error ? (
+              <div className="text-center py-8 text-red-500">{error}</div>
+            ) : (
+              <Table className="w-full min-w-[600px]">
+                <TableHeader>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead key={header.id} className="text-xs font-semibold text-gray-700 bg-gray-50">
+                          {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.length ? (
+                    table.getRowModel().rows.map((row, idx) => (
+                      <TableRow key={row.id} className="border-b last:border-0 hover:bg-gray-50 transition" data-state={row.getIsSelected() && "selected"}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id} className="py-3 px-4">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">Nenhum resultado encontrado.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </div>
+      </div>
     )
 } 

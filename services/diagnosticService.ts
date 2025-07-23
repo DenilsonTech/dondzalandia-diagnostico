@@ -143,6 +143,21 @@ export async function updateDiagnosticTest(id: string, data: CreateDiagnosticTes
     return response.json();
 }
 
+export async function deleteDiagnosticTest(id: string): Promise<void> {
+    const token = Cookies.get("access_token");
+    const response = await fetch(`${API_BASE_URL}testes_diagnosticos/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            ...(token && { "Authorization": `Bearer ${token}` }),
+        },
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro ao excluir teste diagnóstico.");
+    }
+}
+
 export interface RespostaExercicio {
     exercicio_id: string;
     resposta: string | boolean | undefined;
@@ -159,10 +174,34 @@ export interface SubmitTestResponse {
     // Add other fields from the response if necessary
 }
 
+export interface Resposta {
+    id: string;
+    resultado_id: string;
+    exercicio_id: string;
+    resposta: string;
+    correta: number;
+    created_at: string;
+    updated_at: string;
+    exercicio: {
+        id: string;
+        teste_id: string;
+        competencia_id: string;
+        jogabilidade: string;
+        enunciado: string;
+        valor: string;
+        pontos: number;
+        opcoes: string;
+        created_at: string;
+        updated_at: string;
+    };
+}
+
 export interface DiagnosticTestResult {
     aluno_id: string;
     teste_id: string;
     valor_total: number;
+    data_realizacao?: string;
+    respostas: Resposta[];
     respostas_corretas: number;
     total_exercicios: number;
     data_submissao: string;
